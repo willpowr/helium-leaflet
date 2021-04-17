@@ -1,4 +1,4 @@
-import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { GoogleSpreadsheet } from '../node_modules/google-spreadsheet';
 
 const doc = new GoogleSpreadsheet('1IoIabHVGONxSG2mlip7CiYi0MS8KGe4F2dW1OnjfqPg');
 
