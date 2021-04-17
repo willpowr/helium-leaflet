@@ -27,7 +27,7 @@ const authenticate = async () => {
 
     const rows = await sheet.getRows();
 
-    console.log(rows[1].Address)
+    rows.forEach(row => console.log(row.Address))
 }
 
 authenticate()
