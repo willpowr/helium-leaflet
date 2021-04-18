@@ -1,11 +1,11 @@
 
-const { authenticate, getGeoLocations } = require('./googleSheets')
+const { getReferralLocations } = require('./referrals')
+const { getHotspotsAroundLocation } = require('./heliumApi')
 const L = require('leaflet')
 
-const getGeos = async () => {
-    await authenticate()
-    const coords = await getGeoLocations()
-    return coords.map(pair => pair.split(',').map(Number))
+const getGeos = async (coords) => {
+    
+    return coords
 }
 
 const getCircle = (lat, long, sizeMetres, color, fillColor) => {
@@ -16,9 +16,10 @@ const getCircle = (lat, long, sizeMetres, color, fillColor) => {
     })
 }
 
-const addCircles = (map, coords) => {
+const addCircles = (map, coords, color) => {
+    console.log(coords)
     coords.forEach(coord => {
-        getCircle(coord[0], coord[1], 300, 'green', 'green').addTo(map)
+        getCircle(coord[0], coord[1], 300, color, color).addTo(map)
     })
 }
 
@@ -33,33 +34,16 @@ exports.showMap = async () => {
         tileSize: 512,
         zoomOffset: -1
     }).addTo(mymap);
+    
+    const networkHotspots = await getHotspotsAroundLocation(51.51782401166121, -0.12840809141604265, 60000)
+    const  networkHotspotLocations = networkHotspots.data.map(hotspot => [hotspot.lat, hotspot.lng])
+    addCircles(mymap, networkHotspotLocations, 'blue')
 
-    L.marker([51.5, -0.09]).addTo(mymap)
-        .bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
+    addCircles(mymap, await getReferralLocations(), 'green')
 
     L.circle([51.4999307, -0.3050284], 300, {
         color: 'red',
         fillColor: '#f03',
         fillOpacity: 0.5
-    }).addTo(mymap).bindPopup("I am a circle.");
-
-    addCircles(mymap, await getGeos())
-
-    L.polygon([
-        [51.509, -0.08],
-        [51.503, -0.06],
-        [51.51, -0.047]
-    ]).addTo(mymap).bindPopup("I am a polygon.");
-
-
-    var popup = L.popup();
-
-    function onMapClick(e) {
-        popup
-            .setLatLng(e.latlng)
-            .setContent("You clicked the map at " + e.latlng.toString())
-            .openOn(mymap);
-    }
-
-    mymap.on('click', onMapClick);
+    }).addTo(mymap).bindPopup("My box");
 }
