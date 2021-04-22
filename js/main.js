@@ -4,7 +4,7 @@ const { getHotspotsAroundLocation } = require('./heliumApi')
 const L = require('leaflet')
 
 const getGeos = async (coords) => {
-    
+
     return coords
 }
 
@@ -24,7 +24,8 @@ const addCircles = (map, coords, color) => {
 }
 
 exports.showMap = async () => {
-    var mymap = L.map('mapid').setView([51.505, -0.09], 10);
+    let centreCoords = [51.51782401166121, -0.12840809141604265] //london
+    var mymap = L.map('mapid').setView([centreCoords[0], centreCoords[1]], 10);
 
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         maxZoom: 18,
@@ -34,16 +35,30 @@ exports.showMap = async () => {
         tileSize: 512,
         zoomOffset: -1
     }).addTo(mymap);
-    
-    const networkHotspots = await getHotspotsAroundLocation(51.51782401166121, -0.12840809141604265, 60000)
-    const  networkHotspotLocations = networkHotspots.data.map(hotspot => [hotspot.lat, hotspot.lng])
+
+    const networkHotspots = await getHotspotsAroundLocation(centreCoords[0], centreCoords[1], 60000)
+    const networkHotspotLocations = networkHotspots.data.map(hotspot => [hotspot.lat, hotspot.lng])
     addCircles(mymap, networkHotspotLocations, 'blue')
 
     addCircles(mymap, await getReferralLocations(), 'green')
 
+    // my gaff
     L.circle([51.4999307, -0.3050284], 300, {
         color: 'red',
         fillColor: '#f03',
         fillOpacity: 0.5
     }).addTo(mymap).bindPopup("My box");
+
+    var popup = L.popup();
+
+    async function onMapClick(e) {
+        centreCoords = [e.latlng.lat, e.latlng.lng]
+        // console.log(e)
+        mymap.setView([centreCoords[0], centreCoords[1]], 10)
+        const networkHotspots = await getHotspotsAroundLocation(centreCoords[0], centreCoords[1], 60000)
+        const networkHotspotLocations = networkHotspots.data.map(hotspot => [hotspot.lat, hotspot.lng])
+        addCircles(mymap, networkHotspotLocations, 'blue')
+    }
+
+    mymap.on('click', onMapClick);
 }
